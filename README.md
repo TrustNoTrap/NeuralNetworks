@@ -11,3 +11,4 @@ If you're someone that wants to know more about Neural Networks and how they wor
 * [But what is a neural network? | Deep learning chapter 1 - 3Blue1Brown](https://www.youtube.com/watch?v=aircAruvnKk)
 * [The Most Important Algorithm in Machine Learning - Artem Kirsanov](https://www.youtube.com/watch?v=SmZmBKc7Lrs)
 * [Understanding AI - Lesson 1 / 15: A Simple Neural Network - Radu Mariescu-Istodor](https://www.youtube.com/watch?v=w8n3D8yUZKM)
+* [THIS is why large language models can understand the world - Algorithmic Simplicity](https://www.youtube.com/watch?v=UKcWu1l_UNw)
