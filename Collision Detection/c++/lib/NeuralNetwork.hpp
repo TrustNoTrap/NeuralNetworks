@@ -115,9 +115,57 @@ class NeuralNetwork {
                 L::log(data.str());
             }
 
-            for (int epoch = 0; epoch < epochs; ++epoch) {
+            for (int epoch = 0; epoch < epochs; ++epoch) { // training session iterator
                 learning_rate = std::max(min_lr, base_lr * std::powf(decay_rate, epoch)); // Had to use powf instead of pow
-                // TODO   
+                totalError = 0.0;
+                
+                for (size_t batch = 0; batch < dataset_size; batch += batch_size) { // mini batch training
+                    size_t actual_batch_size = std::min(batch_size, (dataset_size - batch)); // Handles the case when the remaining dataset contains less elements than the batch size
+
+                    std::vector<Matrix> weight_batch_gradients;
+                    for (size_t i = 0; i < weights.size(); ++i) { // Create a gradient matrix
+                        weight_batch_gradients.emplace_back(weights[i].getRows(), weights[i].getCols()); // Will hold the sum of gradients for each mini batch
+                    }
+
+                    std::vector<std::vector<double>> bias_batch_gradients(layers.size() - 1); // Create one vector for each layer (excluding the input layer itself)
+
+                    // Resize each vector to match the number of neurons in its corresponding layer
+                    for (size_t i = 0; i < bias_batch_gradients.size(); ++i) {
+                        bias_batch_gradients[i].resize(layers[i + 1].size, 0.0);
+                    }
+
+                    // Loop through each training example in the current batch
+                    for (size_t k = batch; k < (batch + actual_batch_size); ++k) {
+                        forward(inputs[k]);
+
+                        Layer& outputLayer = layers.back();
+                        // Log(0) is undefined in math, in practice it is negative infinity (Completely breaks our loss function)
+                        const double epsilon = 1e-7; // Used to prevent Log(0) -> Undefined
+
+                        // Collision -> 1, no collision -> 0
+                        for (size_t i = 0; i < outputLayer.size; ++i) {
+                            double y_true = targets[k][i]; // Actual value that needs to be the result
+                            double y_pred = outputLayer.a[i]; // Predicted value by the network
+
+                            y_pred = std::min(std::max(y_pred, epsilon), 1.0 - epsilon);
+
+                            totalError += (y_true * std::log(y_pred) + (1.0 - y_true) * std::log(1.0 - y_pred)); // Calculate loss
+
+                            outputLayer.gradient[i] = y_pred - y_true; // Gradient for the output neauron
+                        }
+
+                        for (int l = (static_cast<int>(layers.size()) - 2); l > 0; --l) { // Go over all the layers except the output layer and last hidden layer
+                            for (size_t i = 0; i < weights[l].getRows(); ++i) {
+                                double error = 0.0; // Total weighted error from the next layer
+                                for (size_t j = 0; weights[l].getCols(); ++j) { // Accumulate the error
+                                    error += layers[l + 1].gradient[j] * weights[l](i, j);
+                                }
+
+                                layers[l].gradient[i] = error * layers[l].applyActivationDerivative(layers[l].z[i]); // Get activation for the preactivation neauron
+                            }
+                        }
+                    }
+                }
             }
 
         }
